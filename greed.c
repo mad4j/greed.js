@@ -55,6 +55,10 @@ static char *version = "Greed v" RELEASE;
 #include <ctype.h>
 #endif
 
+/* emscripten support */
+#include <unistd.h>
+#include <term.h>
+
 #define HEIGHT	22
 #define WIDTH	79
 #define ME	'@'
@@ -67,9 +71,18 @@ static char *version = "Greed v" RELEASE;
 #define SCOREFILESIZE (MAXSCORES * sizeof(struct score))
 
 /* rnd() returns a random number between 1 and x */
-#define rnd(x) (int) ((rand() % (x))+1)
+#define rnd(x) (int) ((lrand48() % (x))+1)
 
 #define LOCKPATH "/tmp/Greed.lock"	/* lock path for high score file */
+
+/* emscripten support*/
+#define getpid rand
+#define srand48 srand
+#define lrand48 rand
+
+/* emscripten support*/
+int tunnel(chtype cmd, int *attribs);
+int othermove(int bady, int badx);
 
 /* 
  * changing stuff in this struct
@@ -86,6 +99,8 @@ static int score = 0;
 static char *cmdname;
 static WINDOW *helpwin = NULL;
 
+static void topscores(int);
+
 static void botmsg(char *msg, bool backcur)
 /* 
  * botmsg() writes "msg" at the middle of the bottom line of the screen.
@@ -101,8 +116,6 @@ static void botmsg(char *msg, bool backcur)
     havebotmsg = true;
 }
 
-int tunnel(chtype cmd, int *attribs);
-int othermove(int bady, int badx);
 
 static void quit(int sig) 
 /* 
@@ -128,6 +141,7 @@ static void quit(int sig)
 	refresh();
 	endwin();
 	puts("\n");
+	topscores(score);
     }
     exit(0);
 }
@@ -164,6 +178,7 @@ static void showscore(void)
 
 void showmoves(bool, int*);
 
+/* emscripten support */
 int main(int argc, char **argv)
 {
     int val = 1;
@@ -177,6 +192,7 @@ int main(int argc, char **argv)
     if (argc == 2) {			/* process the command line */
 	if (strlen(argv[1]) != 2 || argv[1][0] != '-') usage();
 	if (argv[1][1] == 's') {
+	    topscores(0);
 	    exit(0);
 	}
     } 
@@ -194,7 +210,7 @@ int main(int argc, char **argv)
     cbreak();
     noecho();
 
-    srand(time(0));	/* initialize the random seed *
+    srand48(time(0) ^ getpid() << 16);	/* initialize the random seed *
 					 * with a unique number       */
 
 #ifdef A_COLOR
@@ -276,6 +292,7 @@ int main(int argc, char **argv)
     refresh();
     endwin();
     puts("\n");				/* writes two newlines */
+    topscores(score);
     exit(0);
 }
 
@@ -480,11 +497,121 @@ void showmoves(bool on, int *attribs)
 	}
     }
 }
-
-char doputc(char c)
+/* emscripten support */
+int doputc(int c)
 /* doputc() simply prints out a character to stdout, used by tputs() */
 {
     return(fputc(c, stdout));
+}
+
+static void topscores(int newscore)
+/* 
+ * topscores() processes its argument with the high score file, makes any
+ * updates to the file, and outputs the list to the screen.  If "newscore"
+ * is false, the score file is printed to the screen (i.e. "greed -s")
+ */
+{
+    int fd, count = 1;
+    static char termbuf[BUFSIZ];
+    char *tptr = (char *) malloc(16), *boldon, *boldoff;
+    struct score *toplist = (struct score *) malloc(SCOREFILESIZE);
+    struct score *ptrtmp, *eof = &toplist[MAXSCORES], *new = NULL;
+    extern char *getenv(), *tgetstr();
+    void lockit(bool);
+
+    (void) signal(SIGINT, SIG_IGN);	/* Catch all signals, so high */
+    (void) signal(SIGQUIT, SIG_IGN);	/* score file doesn't get     */
+    (void) signal(SIGTERM, SIG_IGN);	/* messed up with a kill.     */
+    (void) signal(SIGHUP, SIG_IGN);
+
+    /* following open() creates the file if it doesn't exist
+     * already, using secure mode
+     */
+    if ((fd = open(SCOREFILE, O_RDWR|O_CREAT, 0600)) == -1) {
+	    fprintf(stderr, "%s: %s: Cannot open.\n", cmdname,
+		    SCOREFILE);
+	exit(1);
+    }
+
+    lockit(true);			/* lock score file */
+    for (ptrtmp=toplist; ptrtmp < eof; ptrtmp++) ptrtmp->score = 0;
+    /* initialize scores to 0 */
+    read(fd, toplist, SCOREFILESIZE);	/* read whole score file in at once */
+
+    if (newscore) {			/* if possible high score */
+	for (ptrtmp=toplist; ptrtmp < eof; ptrtmp++)
+	    /* find new location for score */
+	    if (newscore > ptrtmp->score) break;
+	if (ptrtmp < eof) {	/* if it's a new high score */
+	    new = ptrtmp;	/* put "new" at new location */
+	    ptrtmp = eof-1;	/* start at end of list */
+	    while (ptrtmp > new) {	/* shift list one down */
+		*ptrtmp = *(ptrtmp-1);
+		ptrtmp--;
+	    }
+
+	    new->score = newscore;	/* fill "new" with the info */
+	    strncpy(new->user, getpwuid(getuid())->pw_name, 8);
+	    (void) lseek(fd, 0, 0);	/* seek back to top of file */
+	    write(fd, toplist, SCOREFILESIZE);	/* write it all out */
+	}
+    }
+
+    close(fd);
+    lockit(false);			/* unlock score file */
+
+    if (toplist->score) 
+	puts("Rank  Score  Name     Percentage");
+    else 
+	puts("No high scores.");	/* perhaps "greed -s" was run before *
+					 * any greed had been played? */
+    if (new && tgetent(termbuf, getenv("TERM")) > 0) {
+	/* grab escape sequences for standout */
+	boldon = tgetstr("so", &tptr);
+	boldoff = tgetstr("se", &tptr);
+	/* if only got one of the codes, use neither */
+	if (boldon==NULL || boldoff==NULL) 
+	    boldon = boldoff = NULL;
+    }
+
+    /* print out list to screen, highlighting new score, if any */
+    for (ptrtmp=toplist; ptrtmp < eof && ptrtmp->score; ptrtmp++, count++) {
+	if (ptrtmp == new && boldon)
+	    tputs(boldon, 1, doputc);
+	printf("%-5d %-6d %-8s %.2f%%\n", count, ptrtmp->score,
+	       ptrtmp->user, (float) ptrtmp->score / 17.38);
+	if (ptrtmp == new && boldoff) tputs(boldoff, 1, doputc);
+    }
+}
+
+
+void lockit(bool on)
+/*
+ * lockit() creates a file with mode 0 to serve as a lock file.  The creat()
+ * call will fail if the file exists already, since it was made with mode 0.
+ * lockit() will wait approx. 15 seconds for the lock file, and then
+ * override it (shouldn't happen, but might).  "on" says whether to turn
+ * locking on or not.
+ */
+{
+    int fd, x = 1;
+
+    if (on) {
+	while ((fd = open(LOCKPATH, O_RDWR | O_CREAT | O_EXCL, 0)) < 0) {
+	    printf("Waiting for scorefile access... %d/15\n", x);
+	    if (x++ >= 15) {
+		puts("Overriding stale lock...");
+		if (unlink(LOCKPATH) == -1) {
+		    fprintf(stderr,
+			    "%s: %s: Can't unlink lock.\n",
+			    cmdname, LOCKPATH);
+		    exit(1);
+		}
+	    }
+	    sleep(1);
+	}
+	close(fd);
+    } else unlink(LOCKPATH);
 }
 
 #define msg(row, msg) mvwaddstr(helpwin, row, 2, msg);

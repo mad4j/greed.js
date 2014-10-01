@@ -16,7 +16,7 @@ COPY dist-cursesjs\*.bmp dist\
 
 ECHO.
 ECHO building binaries ...
-CMD /C emcc -Oz -DRELEASE=\"1.0js\" greed.c -o out\greed.bc -I dist-cursesjs\
+CMD /C emcc -Oz -DSCOREFILE=\"/usr/games/lib/greed.hs\" -DRELEASE=\"1.0js\" greed.c -o out\greed.bc -I dist-cursesjs\
 
 ECHO.
 ECHO building application ...
