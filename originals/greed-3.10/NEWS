@@ -1,0 +1,18 @@
+			greed project news
+
+3.10 @ 2014-05-14:
+  Fix a GREEDOPTS bug reported by Yu-Jie Lin <livibetter@gmail.com>
+
+3.9 @ 2013-10-23:
+  Minor improvements to in-game help and score management.
+
+3.8 @ 2012-01-18:
+  Fix for gcc4's real booleans from Kiyo Kelvin.
+
+3.7 @ 3010-10-20:
+  Clean up C for modern POSIX and C99-conformant environments.
+  License changed to BSD.
+
+3.6 @ 2003-12-29:
+  Source RPMS no longer depend on --define myversion.
+

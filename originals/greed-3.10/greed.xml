@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE refentry PUBLIC 
+   "-//OASIS//DTD DocBook XML V4.1.2//EN"
+   "docbook/docbookx.dtd">
+<refentry id='greed.6'>
+<refmeta>
+<refentrytitle>greed</refentrytitle>
+<manvolnum>6</manvolnum>
+<refmiscinfo class='date'>Jul 27 2000</refmiscinfo>
+<refmiscinfo class='source'>greed</refmiscinfo>
+<refmiscinfo class='product'>greed</refmiscinfo>
+<refmiscinfo class='manual'>Games</refmiscinfo>
+</refmeta>
+<refnamediv id='name'>
+<refname>greed</refname>
+<refpurpose>eat a game field until you run out of moves</refpurpose>
+</refnamediv>
+<refsynopsisdiv id='synopsis'>
+
+<cmdsynopsis>
+  <command>greed</command>  <arg choice='opt'>-s </arg>
+</cmdsynopsis>
+
+</refsynopsisdiv>
+
+<refsect1 id='description'><title>DESCRIPTION</title>
+<para>The object of Greed is to erase as much of the screen as possible by
+moving around in a grid of numbers.  To move your cursor, simply use 
+your arrow keys or the the 'hjklyubn' keys or your numeric keypad.
+Your location is signified by the @ symbol.</para>
+
+<para>When you move in a direction, you erase N number of grid squares in
+that direction, N being the first number in that direction.  Your
+score reflects the total number of squares eaten.</para>
+
+<para>Greed will not let you make a move that would have placed you off the
+grid or over a previously eaten square. If no valid moves exist, your
+game ends.</para>
+
+<para>Other Greed commands are 'Ctrl-L' to redraw the screen, 'p' to toggle
+the highlighting of the possible moves, and 'q' to quit.  </para>
+
+<para>The only command line option to Greed is '-s' to output the high
+score file.</para>
+</refsect1>
+
+<refsect1 id='environment'><title>ENVIRONMENT</title>
+<para>The environment variable GREEDOPTS can override the default
+color set, which will be parsed as a string of the form:</para>
+
+<literallayout remap='.nf'>
+	&lt;c1&gt;&lt;c2&gt;&lt;c3&gt;&lt;c4&gt;&lt;c5&gt;&lt;c6&gt;&lt;c7&gt;&lt;c8&gt;&lt;c9&gt;[:[p]]
+</literallayout> <!-- .fi -->
+
+<para>where &lt;cn&gt; is a character decribing the color for digit n.
+The color letters are read as follows:</para>
+
+<literallayout remap='.nf'>
+	b = blue,
+	g = green,
+	c = cyan,
+	r = red,
+	m = magenta,
+	y = yellow,
+	w = white.
+</literallayout> <!-- .fi -->
+
+<para>In addition, capitalizing a letter turns on the A_BOLD attribute for that
+letter.</para>
+
+<para>If the string ends with a trailing :, letters following are taken as game
+options. At present, only 'p' (equivalent to an initial 'p' command) is
+defined.</para>
+</refsect1>
+
+<refsect1 id='files'><title>FILES</title>
+<variablelist remap='TP'>
+<varlistentry>
+<term>/usr/lib/games/greed.hs</term>
+<listitem>
+<para>Default location of Greed high scores.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</refsect1>
+
+<refsect1 id='authors'><title>AUTHORS</title> <para>Originally written
+by Matt Day.  Maintained by <email>esr@snark.thyrsus.com</email>. See
+ESR's home page at <ulink
+url='http://www.catb.org/~esr/'>http://www.catb.org/~esr/</ulink> for
+updates and other resources.</para>
+</refsect1>
+
+<refsect1 id='bugs'><title>BUGS</title>
+<para>This really ought to be an X game, but that would have been too much
+like work.</para>
+</refsect1>
+</refentry>
+

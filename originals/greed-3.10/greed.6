@@ -1,0 +1,95 @@
+'\" t
+.\"     Title: greed
+.\"    Author: [see the "AUTHORS" section]
+.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 10/23/2013
+.\"    Manual: Games
+.\"    Source: greed
+.\"  Language: English
+.\"
+.TH "GREED" "6" "10/23/2013" "greed" "Games"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+greed \- eat a game field until you run out of moves
+.SH "SYNOPSIS"
+.HP \w'\fBgreed\fR\ 'u
+\fBgreed\fR [\-s]
+.SH "DESCRIPTION"
+.PP
+The object of Greed is to erase as much of the screen as possible by moving around in a grid of numbers\&. To move your cursor, simply use your arrow keys or the the \*(Aqhjklyubn\*(Aq keys or your numeric keypad\&. Your location is signified by the @ symbol\&.
+.PP
+When you move in a direction, you erase N number of grid squares in that direction, N being the first number in that direction\&. Your score reflects the total number of squares eaten\&.
+.PP
+Greed will not let you make a move that would have placed you off the grid or over a previously eaten square\&. If no valid moves exist, your game ends\&.
+.PP
+Other Greed commands are \*(AqCtrl\-L\*(Aq to redraw the screen, \*(Aqp\*(Aq to toggle the highlighting of the possible moves, and \*(Aqq\*(Aq to quit\&.
+.PP
+The only command line option to Greed is \*(Aq\-s\*(Aq to output the high score file\&.
+.SH "ENVIRONMENT"
+.PP
+The environment variable GREEDOPTS can override the default color set, which will be parsed as a string of the form:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+	<c1><c2><c3><c4><c5><c6><c7><c8><c9>[:[p]]
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+where <cn> is a character decribing the color for digit n\&. The color letters are read as follows:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+	b = blue,
+	g = green,
+	c = cyan,
+	r = red,
+	m = magenta,
+	y = yellow,
+	w = white\&.
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+In addition, capitalizing a letter turns on the A_BOLD attribute for that letter\&.
+.PP
+If the string ends with a trailing :, letters following are taken as game options\&. At present, only \*(Aqp\*(Aq (equivalent to an initial \*(Aqp\*(Aq command) is defined\&.
+.SH "FILES"
+.PP
+/usr/lib/games/greed\&.hs
+.RS 4
+Default location of Greed high scores\&.
+.RE
+.SH "AUTHORS"
+.PP
+Originally written by Matt Day\&. Maintained by
+esr@snark\&.thyrsus\&.com\&. See ESR\*(Aqs home page at
+\m[blue]\fBhttp://www\&.catb\&.org/~esr/\fR\m[]
+for updates and other resources\&.
+.SH "BUGS"
+.PP
+This really ought to be an X game, but that would have been too much like work\&.

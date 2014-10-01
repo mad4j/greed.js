@@ -1,0 +1,64 @@
+			Welcome to greed
+
+This game is now maintained by Eric S. Raymond <esr@snark.thyrsus.com>.  Matt
+Day dropped out of sight and hasn't posted a new version or patch since 1990.
+You can surf to the latest version from
+
+	http://www.catb.org/~esr/
+
+The 3.1 version features better interrupt handling and the `p' suffix to
+GREEDOPTS.
+
+-------------------------------------------------------------------------------
+Welcome to Greed v3.0a!
+To install Greed, simply edit the Makefile to configure your system type, and
+run "make install".  It should compile the program and install it correctly.
+It does run set-uid, but there is no danger of security problems.
+
+New features to v3.0a:
+
+I certainly hope that no patches need to be made to this game. (Yeah, sure..)
+Although this might not validate a true version step from 2.1a to 3.0, I think
+the archives will be happier with a reset version.  On with the new features..
+
+With Microsoft C 5.1 and PCCurses, you can get Greed running on your PC.
+In fact, I'll bet a port to Turbo C 2.0 wouldn't be very hard at all, but I
+use Microsoft.  The whole port was done by Fred C. Smith, more info on him
+can be found at the top of greed.c.  All bug reports pertaining to the DOS
+port should be directed to the address of Fred specified in greed.c.
+
+Additions to v3.0a (game-wise):
+Replaced '-p' option with 'p' command, to allow toggling of the highlighting
+moves feature.  Pretty nice, I think.. thanks to Jim Prescott.
+
+Color curses, for users with color capabilities (color monitor & SVR3).
+See the top of greed.c for details.
+
+Couple of possible pointer problems fixed, thanks to David Connet for pointing
+them out.
+
+Who knows what else.. I didn't bother to write them down, but more than just
+this did get done.  Trust me!
+
+I do not take credit for inventing the game, I once saw it on an IBM,
+and wrote it for Unix in C.
+
+If anyone has a comment or problem, please mail them to mday@iconsys.uu.net.
+
+Here's the current high score file at Orem High School:
+Rank  Score  Name     Percentage
+1     1542   stay     88.72%		/* Has _anyone_ beaten this? */
+2     1504   ndes     86.54%
+3     1504   dvar     86.54%
+4     1501   stay     86.36%
+5     1497   stay     86.13%
+6     1490   skel     85.73%
+7     1464   dvar     84.23%
+8     1463   stay     84.18%
+9     1463   stay     84.18%
+10    1460   stay     84.00%
+
++----------------------------------------------+-------------------------+
+| Matthew T. Day, Icon International, Orem, UT | Xerox never comes up    |
+| ..!uunet!iconsys!mday (mday@iconsys.uu.net)  | with anything original. |
++----------------------------------------------+-------------------------+
