@@ -73,16 +73,16 @@ static char *version = "Greed v" RELEASE;
 /* rnd() returns a random number between 1 and x */
 #define rnd(x) (int) ((lrand48() % (x))+1)
 
-#define LOCKPATH "/tmp/Greed.lock"	/* lock path for high score file */
+#define LOCKPATH "/tmp/greed.lock"	/* lock path for high score file */
 
 /* emscripten support*/
 #define getpid rand
 #define srand48 srand
 #define lrand48 rand
 
-/* emscripten support*/
 int tunnel(chtype cmd, int *attribs);
 int othermove(int bady, int badx);
+void showmoves(bool, int*);
 
 /* 
  * changing stuff in this struct
@@ -176,124 +176,126 @@ static void showscore(void)
     refresh();
 }
 
-void showmoves(bool, int*);
-
-/* emscripten support */
 int main(int argc, char **argv)
 {
-    int val = 1;
-    extern long time();
-    int attribs[9];
+
+	while (1) {
+	
+		int val = 1;
+		extern long time();
+		int attribs[9];
+		
 #ifdef A_COLOR
-    char *colors;
+		char *colors;
 #endif
 
-    cmdname = argv[0];			/* save the command name */
-    if (argc == 2) {			/* process the command line */
-	if (strlen(argv[1]) != 2 || argv[1][0] != '-') usage();
-	if (argv[1][1] == 's') {
-	    topscores(0);
-	    exit(0);
-	}
-    } 
-    else if (argc > 2)		/* can't have > 2 arguments */ 
-	usage();
+		cmdname = argv[0];			/* save the command name */
+		if (argc == 2) {			/* process the command line */
+		if (strlen(argv[1]) != 2 || argv[1][0] != '-') usage();
+		if (argv[1][1] == 's') {
+			topscores(0);
+			exit(0);
+		}
+		} 
+		else if (argc > 2)		/* can't have > 2 arguments */ 
+		usage();
 
-    (void) signal(SIGINT, quit);	/* catch off the signals */
-    (void) signal(SIGQUIT, quit);
-    (void) signal(SIGTERM, out);
+		(void) signal(SIGINT, quit);	/* catch off the signals */
+		(void) signal(SIGQUIT, quit);
+		(void) signal(SIGTERM, out);
 
-    initscr();				/* set up the terminal modes */
+		initscr();				/* set up the terminal modes */
 #ifdef KEY_MIN
-    keypad(stdscr, true);
+		keypad(stdscr, true);
 #endif /* KEY_MIN */
-    cbreak();
-    noecho();
+		cbreak();
+		noecho();
 
-    srand48(time(0) ^ getpid() << 16);	/* initialize the random seed *
-					 * with a unique number       */
+		srand48(time(0) ^ getpid() << 16);	/* initialize the random seed *
+											 * with a unique number       */
 
 #ifdef A_COLOR
-    if (has_colors()) {
-	start_color();
-	init_pair(1, COLOR_YELLOW, COLOR_BLACK);
-	init_pair(2, COLOR_RED, COLOR_BLACK);
-	init_pair(3, COLOR_GREEN, COLOR_BLACK);
-	init_pair(4, COLOR_CYAN, COLOR_BLACK);	
-	init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
+		if (has_colors()) {
+		start_color();
+		init_pair(1, COLOR_YELLOW, COLOR_BLACK);
+		init_pair(2, COLOR_RED, COLOR_BLACK);
+		init_pair(3, COLOR_GREEN, COLOR_BLACK);
+		init_pair(4, COLOR_CYAN, COLOR_BLACK);	
+		init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
 
-	attribs[0] = COLOR_PAIR(1);
-	attribs[1] = COLOR_PAIR(2);
-	attribs[2] = COLOR_PAIR(3);
-	attribs[3] = COLOR_PAIR(4);
-	attribs[4] = COLOR_PAIR(5);
-	attribs[5] = COLOR_PAIR(1) | A_BOLD;
-	attribs[6] = COLOR_PAIR(2) | A_BOLD;
-	attribs[7] = COLOR_PAIR(3) | A_BOLD;
-	attribs[8] = COLOR_PAIR(4) | A_BOLD;
+		attribs[0] = COLOR_PAIR(1);
+		attribs[1] = COLOR_PAIR(2);
+		attribs[2] = COLOR_PAIR(3);
+		attribs[3] = COLOR_PAIR(4);
+		attribs[4] = COLOR_PAIR(5);
+		attribs[5] = COLOR_PAIR(1) | A_BOLD;
+		attribs[6] = COLOR_PAIR(2) | A_BOLD;
+		attribs[7] = COLOR_PAIR(3) | A_BOLD;
+		attribs[8] = COLOR_PAIR(4) | A_BOLD;
 
-	if ((colors = getenv("GREEDOPTS")) != (char *) NULL) {
-	    static char *cnames = " rgybmcwRGYBMCW";
-	    char *cp;
+		if ((colors = getenv("GREEDOPTS")) != (char *) NULL) {
+			static char *cnames = " rgybmcwRGYBMCW";
+			char *cp;
 
-	    for (cp = colors; *cp && *cp != ':'; cp++)
-		if (strchr(cnames, *cp) != (char *) NULL)
-		    if (*cp != ' ') {
-			init_pair(cp-colors+1,
-				  strchr(cnames, tolower(*cp))-cnames,
-				  COLOR_BLACK);
-			attribs[cp-colors]=COLOR_PAIR(cp-colors+1);
-			if (isupper(*cp))
-			    attribs[cp-colors] |= A_BOLD;
-		    }
-	    if (*cp == ':')
-		while (*++cp)
-		    if (*cp == 'p')
-			allmoves = true;
+			for (cp = colors; *cp && *cp != ':'; cp++)
+			if (strchr(cnames, *cp) != (char *) NULL)
+				if (*cp != ' ') {
+				init_pair(cp-colors+1,
+					strchr(cnames, tolower(*cp))-cnames,
+					COLOR_BLACK);
+				attribs[cp-colors]=COLOR_PAIR(cp-colors+1);
+				if (isupper(*cp))
+					attribs[cp-colors] |= A_BOLD;
+				}
+			if (*cp == ':')
+			while (*++cp)
+				if (*cp == 'p')
+				allmoves = true;
+		}
+		}
+#endif
+
+		for (y=0; y < HEIGHT; y++)		/* fill the grid array and */
+		for (x=0; x < WIDTH; x++)		/* print numbers out */
+#ifdef A_COLOR
+			if (has_colors()) {
+			int newval = rnd(9);
+
+			attron(attribs[newval - 1]);
+			mvaddch(y, x, (grid[y][x] = newval) + '0');
+			attroff(attribs[newval - 1]);
+			} else
+#endif
+			mvaddch(y, x, (grid[y][x] = rnd(9)) + '0');
+
+		mvaddstr(23, 0, "Score: ");		/* initialize bottom line */
+		mvprintw(23, 40, "%s - Hit '?' for help.", version);
+		y = rnd(HEIGHT)-1; x = rnd(WIDTH)-1;		/* random initial location */
+		standout();
+		mvaddch(y, x, ME);
+		standend();
+		grid[y][x] = 0;				/* eat initial square */
+
+		if (allmoves) 
+		showmoves(true, attribs);
+		showscore();
+
+		/* main loop, gives tunnel() a user command */
+		while ((val = tunnel(getch(), attribs)) > 0)
+		continue;
+
+		if (!val) {				/* if didn't quit by 'q' cmd */
+		botmsg("Hit any key..", false);	/* then let user examine     */
+		getch();			/* final screen              */
+		}
+
+		move(23, 0);
+		refresh();
+		endwin();
+		puts("\n");				/* writes two newlines */
+		topscores(score);
 	}
-    }
-#endif
-
-    for (y=0; y < HEIGHT; y++)		/* fill the grid array and */
-	for (x=0; x < WIDTH; x++)		/* print numbers out */
-#ifdef A_COLOR
-	    if (has_colors()) {
-		int newval = rnd(9);
-
-		attron(attribs[newval - 1]);
-		mvaddch(y, x, (grid[y][x] = newval) + '0');
-		attroff(attribs[newval - 1]);
-	    } else
-#endif
-		mvaddch(y, x, (grid[y][x] = rnd(9)) + '0');
-
-    mvaddstr(23, 0, "Score: ");		/* initialize bottom line */
-    mvprintw(23, 40, "%s - Hit '?' for help.", version);
-    y = rnd(HEIGHT)-1; x = rnd(WIDTH)-1;		/* random initial location */
-    standout();
-    mvaddch(y, x, ME);
-    standend();
-    grid[y][x] = 0;				/* eat initial square */
-
-    if (allmoves) 
-	showmoves(true, attribs);
-    showscore();
-
-    /* main loop, gives tunnel() a user command */
-    while ((val = tunnel(getch(), attribs)) > 0)
-	continue;
-
-    if (!val) {				/* if didn't quit by 'q' cmd */
-	botmsg("Hit any key..", false);	/* then let user examine     */
-	getch();			/* final screen              */
-    }
-
-    move(23, 0);
-    refresh();
-    endwin();
-    puts("\n");				/* writes two newlines */
-    topscores(score);
-    exit(0);
+	exit(0);
 }
 
 
