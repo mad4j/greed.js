@@ -13,6 +13,9 @@
  *          since I saw it a few years ago (personal preference).
  *          -Some style changes in the code, again personal preference.
  *          fredex@fcshome.stoneham.ma.us
+ *
+ * 10/02/14 Daniele Olmisani Javascript porting
+ *          daniele.olmisani@gmail.com
  */
 
 /*
@@ -58,9 +61,10 @@ static char *version = "Greed v" RELEASE;
 /* emscripten support */
 #include <unistd.h>
 #include <term.h>
+#include <time.h>
 
 #define HEIGHT	22
-#define WIDTH	79
+#define WIDTH	80
 #define ME	'@'
 
 /*
@@ -181,8 +185,10 @@ int main(int argc, char **argv)
 
 	while (1) {
 	
+		/* reset intial score */
+		score = 0;
+	
 		int val = 1;
-		extern long time();
 		int attribs[9];
 		
 #ifdef A_COLOR
@@ -291,10 +297,11 @@ int main(int argc, char **argv)
 
 		move(23, 0);
 		refresh();
-		endwin();
+		
 		puts("\n");				/* writes two newlines */
 		topscores(score);
 	}
+	endwin();
 	exit(0);
 }
 
@@ -309,58 +316,72 @@ int tunnel(chtype cmd, int *attribs)
     void help(void);
 
     switch (cmd) {				/* process user command */
+	
     case 'h': case 'H': case '4':
-#ifdef KEY_LEFT
     case KEY_LEFT:
-#endif /* KEY_LEFT */
+	case KEY_B1:
 	dy = 0; dx = -1;
 	break;
+	
     case 'j': case 'J': case '2':
-#ifdef KEY_DOWN
     case KEY_DOWN:
-#endif /* KEY_DOWN */
+	case KEY_C2:
 	dy = 1; dx = 0;
 	break;
+	
     case 'k': case 'K': case '8':
-#ifdef KEY_UP
     case KEY_UP:
-#endif /* KEY_UP */
+	case KEY_A2:
 	dy = -1; dx = 0;
 	break;
+	
     case 'l': case 'L': case '6':
-#ifdef KEY_RIGHT
     case KEY_RIGHT:
-#endif /* KEY_RIGHT */
+	case KEY_B3:
 	dy = 0; dx = 1;
 	break;
+	
     case 'b': case 'B': case '1':
+	case KEY_C1:
 	dy = 1; dx = -1;
 	break;
+	
     case 'n': case 'N': case '3':
+	case KEY_C3:
 	dy = dx = 1;
 	break;
-    case 'y': case 'Y': case '7':
+	
+    case 'y': case 'Y': case '7': 
+	case KEY_A1:
 	dy = dx = -1;
 	break;
+	
     case 'u': case 'U': case '9':
+	case KEY_A3:
 	dy = -1; dx = 1;
 	break;
+	
     case 'p': case 'P':
 	allmoves = !allmoves;
 	showmoves(allmoves, attribs);
 	move(y, x);
 	refresh();
 	return (1);
+	
     case 'q': case 'Q':
 	quit(0);
 	return(1);
+	
     case '?':
 	help();
 	return (1);
+	
     case '\14': case '\22':			/* ^L or ^R (redraw) */
 	wrefresh(curscr);		/* falls through to return */
+	
     default:
 	return (1);
+	
     }
     distance = (y+dy >= 0 && x+dx >= 0 && y+dy < HEIGHT && x+dx < WIDTH) ?
 	grid[y+dy][x+dx] : 0;
