@@ -54,7 +54,11 @@ static char *version = "Greed v" RELEASE;
 #include <pwd.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#ifdef A_COLOR
 #include <ctype.h>
+#endif
+
+/* emscripten support */
 #include <unistd.h>
 #include <term.h>
 #include <time.h>
@@ -185,8 +189,10 @@ int main(int argc, char **argv)
 		int val = 1;
 		int attribs[9];
 		
+#ifdef A_COLOR
 		char *colors;
-		
+#endif
+
 		cmdname = argv[0];			/* save the command name */
 		if (argc == 2) {			/* process the command line */
 		if (strlen(argv[1]) != 2 || argv[1][0] != '-') usage();
@@ -203,7 +209,9 @@ int main(int argc, char **argv)
 		(void) signal(SIGTERM, out);
 
 		initscr();				/* set up the terminal modes */
+#ifdef KEY_MIN
 		keypad(stdscr, true);
+#endif /* KEY_MIN */
 		cbreak();
 		noecho();
 
@@ -494,7 +502,7 @@ void showmoves(bool on, int *attribs)
 		do {
 		    j += dy;
 		    i += dx;
-
+#ifdef A_COLOR
 		    if (!on && has_colors()) {
 			int newval = grid[j][i];
 			attron(attribs[newval - 1]);
@@ -502,6 +510,7 @@ void showmoves(bool on, int *attribs)
 			attroff(attribs[newval - 1]);
 		    }
 		    else
+#endif
 			mvaddch(j, i, grid[j][i] + '0');
 		} while (--d);
 		if (on) standend();
@@ -539,8 +548,9 @@ static void topscores(int newscore)
      * already, using secure mode
      */
     if ((fd = open(SCOREFILE, O_RDWR|O_CREAT, 0600)) == -1) {
-	    fprintf(stderr, "%s: %s: Cannot open.\n", cmdname, SCOREFILE);
-		exit(1);
+	    fprintf(stderr, "%s: %s: Cannot open.\n", cmdname,
+		    SCOREFILE);
+	exit(1);
     }
 
     for (ptrtmp=toplist; ptrtmp < eof; ptrtmp++) ptrtmp->score = 0;
