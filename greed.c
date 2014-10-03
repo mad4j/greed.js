@@ -73,8 +73,6 @@ static char *version = "Greed v" RELEASE;
 /* rnd() returns a random number between 1 and x */
 #define rnd(x) (int) ((lrand48() % (x))+1)
 
-#define LOCKPATH "/tmp/greed.lock"	/* lock path for high score file */
-
 /* emscripten support*/
 #define getpid rand
 #define srand48 srand
@@ -531,7 +529,6 @@ static void topscores(int newscore)
     struct score *toplist = (struct score *) malloc(SCOREFILESIZE);
     struct score *ptrtmp, *eof = &toplist[MAXSCORES], *new = NULL;
     extern char *getenv(), *tgetstr();
-    void lockit(bool);
 
     (void) signal(SIGINT, SIG_IGN);	/* Catch all signals, so high */
     (void) signal(SIGQUIT, SIG_IGN);	/* score file doesn't get     */
@@ -546,7 +543,6 @@ static void topscores(int newscore)
 		exit(1);
     }
 
-    lockit(true);			/* lock score file */
     for (ptrtmp=toplist; ptrtmp < eof; ptrtmp++) ptrtmp->score = 0;
     /* initialize scores to 0 */
     read(fd, toplist, SCOREFILESIZE);	/* read whole score file in at once */
@@ -571,8 +567,7 @@ static void topscores(int newscore)
     }
 
     close(fd);
-    lockit(false);			/* unlock score file */
-
+   
     if (toplist->score) 
 	puts("Rank  Score  Name     Percentage");
     else 
@@ -595,36 +590,6 @@ static void topscores(int newscore)
 	       ptrtmp->user, (float) ptrtmp->score / 17.38);
 	if (ptrtmp == new && boldoff) tputs(boldoff, 1, doputc);
     }
-}
-
-
-void lockit(bool on)
-/*
- * lockit() creates a file with mode 0 to serve as a lock file.  The creat()
- * call will fail if the file exists already, since it was made with mode 0.
- * lockit() will wait approx. 15 seconds for the lock file, and then
- * override it (shouldn't happen, but might).  "on" says whether to turn
- * locking on or not.
- */
-{
-    int fd, x = 1;
-
-    if (on) {
-	while ((fd = open(LOCKPATH, O_RDWR | O_CREAT | O_EXCL, 0)) < 0) {
-	    printf("Waiting for scorefile access... %d/15\n", x);
-	    if (x++ >= 15) {
-		puts("Overriding stale lock...");
-		if (unlink(LOCKPATH) == -1) {
-		    fprintf(stderr,
-			    "%s: %s: Can't unlink lock.\n",
-			    cmdname, LOCKPATH);
-		    exit(1);
-		}
-	    }
-	    sleep(1);
-	}
-	close(fd);
-    } else unlink(LOCKPATH);
 }
 
 #define msg(row, msg) mvwaddstr(helpwin, row, 2, msg);
