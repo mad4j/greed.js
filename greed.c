@@ -14,8 +14,9 @@
  *          -Some style changes in the code, again personal preference.
  *          fredex@fcshome.stoneham.ma.us
  *
- * 10/02/14 Daniele Olmisani Javascript porting
- *          daniele.olmisani@gmail.com
+ * 10/02/14 Greed.js Javascript porting by Daniele Olmisani using
+ *          Emscripten and Curses.js, https://github.com/mad4j/curses.js
+ * 
  */
 
 /*
@@ -204,6 +205,12 @@ int main(int argc, char **argv)
 
 		initscr();				/* set up the terminal modes */
 		keypad(stdscr, true);
+		
+		/* add support to mouse events */
+		mouse_set(ALL_MOUSE_EVENTS);
+		PDC_save_key_modifiers(TRUE);
+		PDC_return_key_modifiers(TRUE);
+		
 		cbreak();
 		noecho();
 
@@ -306,6 +313,23 @@ int tunnel(chtype cmd, int *attribs)
     void help(void);
 
     switch (cmd) {				/* process user command */
+	
+	case KEY_MOUSE:
+				
+	request_mouse_pos();
+	if ((BUTTON_STATUS(1) & BUTTON_ACTION_MASK) == BUTTON_PRESSED) {
+	
+		printf("Mouse event at %d, %d\n", MOUSE_X_POS, MOUSE_Y_POS);
+		
+		dx = 0; dy = 0;
+		if (MOUSE_X_POS < (COLS/3)) dx = -1;
+		if (MOUSE_X_POS > 2*(COLS/3)) dx = 1;
+		if (MOUSE_Y_POS < (LINES/3)) dy = -1;
+		if (MOUSE_Y_POS > 2*(LINES/3)) dy = 1;
+		
+		printf("Mouse delta %d, %d\n", dx, dy);
+	}
+	break;
 	
     case 'h': case 'H': case '4':
     case KEY_LEFT:
