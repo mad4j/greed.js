@@ -1,7 +1,7 @@
-greed.js
+Greed.js
 ========
 
-Javascript porting of Greed curses game using Emscripten and Curses.js
+Javascript porting of Greed curses game using Emscripten and [Curses.js](https://github.com/mad4j/curses.js)
 
 [Play!!](http://mad4j.github.io/greed.js/greedjs.html)
 
