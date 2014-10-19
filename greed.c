@@ -45,7 +45,7 @@
  * defined.
  */
 
-static char *version = "Greed v" RELEASE;
+static char *version = "Greed.js v" RELEASE;
 
 #include <stdlib.h>
 #include <string.h>
@@ -95,6 +95,7 @@ struct score {
 static int grid[HEIGHT][WIDTH], y, x;
 static bool allmoves = false, havebotmsg = false;
 static int score = 0;
+static int highscore = 0;
 static char *cmdname;
 static WINDOW *helpwin = NULL;
 
@@ -170,7 +171,13 @@ static void showscore(void)
  * cursor back on the grid, and refreshes the screen.
  */
 {
-    mvprintw(23, 7, "%d  %.2f%%", score, (float) score / 17.38);
+
+	if (score > highscore) {
+		highscore = score;
+	}
+
+    mvprintw(23, 12, "%d  %.2f%%", score, (float) score / 17.38);
+    mvprintw(24, 12, "%d  %.2f%%", highscore, (float) highscore / 17.38);
     move(y, x);
     refresh();
 }
@@ -204,6 +211,7 @@ int main(int argc, char **argv)
 		(void) signal(SIGTERM, out);
 
 		initscr();				/* set up the terminal modes */
+		resize_term(HEIGHT +3, WIDTH);
 		keypad(stdscr, true);
 		
 		/* add support to mouse events */
@@ -272,6 +280,7 @@ int main(int argc, char **argv)
 			mvaddch(y, x, (grid[y][x] = rnd(9)) + '0');
 
 		mvaddstr(23, 0, "Score: ");		/* initialize bottom line */
+		mvaddstr(24, 0, "High Score: ");		/* initialize bottom line */
 		mvprintw(23, 40, "%s - Hit '?' for help.", version);
 		y = rnd(HEIGHT)-1; x = rnd(WIDTH)-1;		/* random initial location */
 		standout();
